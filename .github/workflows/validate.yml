@@ -16,7 +16,9 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-24.04
+    # GitHub-hosted runners are off for the org. Ubicloud VMs are ephemeral,
+    # so a fork PR never touches a long-lived box.
+    runs-on: ubicloud-standard-2-arm
     timeout-minutes: 5
     env:
       # Bump on purpose: a new Claude Code can change what validate accepts.
