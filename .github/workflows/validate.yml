@@ -1,0 +1,35 @@
+# Required check on main. Validates the marketplace with Claude Code's own
+# schema. Needs no model key: `plugin validate` reads files only.
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    # GitHub-hosted runners are off for the org. Ubicloud VMs are ephemeral,
+    # so a fork PR never touches a long-lived box.
+    runs-on: ubicloud-standard-2-arm
+    timeout-minutes: 5
+    env:
+      # Bump on purpose: a new Claude Code can change what validate accepts.
+      CLAUDE_CODE_VERSION: 2.1.287
+      DISABLE_AUTOUPDATER: "1"
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - run: npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+      - run: claude --version
+      - run: claude plugin validate .
